@@ -1,0 +1,27 @@
+;============================================================
+; Token Types
+; EOF (enf-of-file) token is used to indicate that
+; there is no more input left for lexical analysis
+;============================================================
+
+defpackage calc-token : (
+    import core
+)
+
+public: (
+    val EOF = 1
+    val INTEGER = 2    
+    ; operators
+    val PLUS = 3
+)
+
+; TToken type
+public defstruct TToken: (
+    type: Int
+    lexeme: ?
+)
+
+; custom TToken printable format
+; defmethod print (o: OutputStream, t: TToken) : (
+;     println("Token(%_, \'%_\')" % [type(t), lexeme(t)])
+;)

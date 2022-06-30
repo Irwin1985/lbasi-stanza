@@ -1,0 +1,29 @@
+defpackage calc-repl : (
+    import core
+    import reader
+    import calc-token
+    import calc-interpreter
+)
+
+; read one character until the terminal's user hits <ENTER>
+defn read-input () -> Maybe<Char> : (
+    val c = get-char(STANDARD-INPUT-STREAM) as Char
+    One(c) when c != '\n' else None()
+)
+
+defn main () : (
+    while true: (
+        print("calc> ")
+        val input = String(repeat-while(read-input))
+        if length(input) > 0 : (
+            val interpreter = Interpreter(input, 0, TToken(EOF, ""))
+            try: (
+                println(expr(interpreter))
+            ) catch (e: RuntimeError): (
+                println(e)
+            )
+        )
+    )
+)
+
+main()

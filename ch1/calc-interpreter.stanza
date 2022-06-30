@@ -1,0 +1,79 @@
+defpackage calc-interpreter : (
+    import core
+    import calc-token
+)
+
+;============================================================
+; RUNTIME ERROR
+;============================================================
+deftype InterpreterException <: Exception
+
+public defstruct RuntimeError <: InterpreterException : (
+    message: String
+)
+
+defmethod print (o: OutputStream, i: RuntimeError) : (
+    print(o, append("RUNTIME ERROR: ", message(i)))
+)
+
+;============================================================
+; INTERPRETER STRUCTURE
+;============================================================
+public defstruct Interpreter : (
+    text: String
+    pos: Int with: (
+        setter => set-pos
+    )
+    current-token: TToken  with: (
+        setter => set-current-token
+    )
+)
+
+defn error (msg: String) -> RuntimeError : (
+    RuntimeError(msg)
+)
+
+defn get-current-char (i: Interpreter) -> Char : (
+    text(i)[pos(i)]
+)
+
+defn advance (i: Interpreter) : (
+    set-pos(i, pos(i) + 1) ; advance current char
+)
+
+defn get-next-token (i: Interpreter) -> TToken : (
+    label<TToken> return : (
+        return(TToken(EOF, "")) when pos(i) >= length(text(i))
+        if digit?(get-current-char(i)): 
+            val tok = TToken(INTEGER, to-int(to-string(get-current-char(i))))
+            advance(i)
+            return(tok)
+        if get-current-char(i) == '+':
+            val tok = TToken(PLUS, to-string(current-token(i)))
+            advance(i)                
+            return(tok)
+        else:
+            throw $ error(to-string("Unknown character '%_'." % [get-current-char(i)]))
+    )
+)
+
+defn eat (i: Interpreter, t: Int) : (
+    if type(current-token(i)) == t : (
+        set-current-token(i, get-next-token(i))
+    ) else : (
+        throw $ error("Unexpected token")
+    )
+)
+
+public defn expr (i: Interpreter) : (
+    set-current-token(i, get-next-token(i))
+    val left = current-token(i)
+    eat(i, INTEGER)
+    val op = current-token(i)
+    eat(i, PLUS)
+
+    val right = current-token(i)
+    eat(i, INTEGER)
+
+    lexeme(left) + lexeme(right)
+)
